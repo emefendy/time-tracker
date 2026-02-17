@@ -255,7 +255,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
   const getSliceAtPosition = (x: number, y: number): Slice | null => {
     const canvas = canvasRef.current;
-    if (!canvas ?? slices.length === 0) return null;
+    if (!canvas || slices.length === 0) return null;
 
     const rect = canvas.getBoundingClientRect();
     const mouseX = x - rect.left;
