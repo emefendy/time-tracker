@@ -155,8 +155,8 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
       .order("created_at", { ascending: false });
 
     if (updatedEntries) {
-      setAllEntries(updatedEntries);
-      setEntries(aggregateEntries(updatedEntries));
+      setAllEntries(updatedEntries as TimeEntry[]);
+      setEntries(aggregateEntries(updatedEntries as TimeEntry[]));
     }
 
     // Reset state
@@ -182,8 +182,8 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
       .order("created_at", { ascending: false });
 
     if (updatedEntries) {
-      setAllEntries(updatedEntries);
-      setEntries(aggregateEntries(updatedEntries));
+      setAllEntries(updatedEntries as TimeEntry[]);
+      setEntries(aggregateEntries(updatedEntries as TimeEntry[]));
     }
   };
 
@@ -320,11 +320,6 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
   };
 
   useEffect(() => {
-    setAllEntries(initialEntries);
-    setEntries(aggregateEntries(initialEntries));
-  }, []);
-
-  useEffect(() => {
     renderPieChart();
 
     const handleResize = () => {
@@ -348,7 +343,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[20px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
         <div className="bg-gradient-to-br from-[#667eea] to-[#764ba2] p-8 text-center text-white">
           <h1 className="mb-2 text-4xl font-bold">⏱️ Time Tracker</h1>
-          <p>Track what you're working on and visualize your time</p>
+          <p>Track what you&apos;re working on and visualize your time</p>
         </div>
 
         <div className="grid grid-cols-1 gap-8 p-8 lg:grid-cols-2">
@@ -382,7 +377,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
                   Start Timer
                 </button>
                 <button
-                  onClick={stopTimer}
+                  onClick={() => void stopTimer()}
                   disabled={!isRunning}
                   className="flex-1 cursor-pointer rounded-lg bg-red-500 px-5 py-3 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
@@ -412,7 +407,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
                         </div>
                       </div>
                       <button
-                        onClick={() => deleteEntry(entry.id)}
+                        onClick={() => void deleteEntry(entry.id)}
                         className="flex-shrink-0 rounded-md bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
                       >
                         Delete

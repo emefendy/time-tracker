@@ -1,4 +1,4 @@
-export type TimeEntry = {
+export interface TimeEntry = {
   id: number;
   user_id: string;
   category: string;
@@ -6,13 +6,13 @@ export type TimeEntry = {
   created_at: string;
 };
 
-export type TimeEntryInsert = {
+export interface TimeEntryInsert = {
   user_id: string;
   category: string;
   seconds: number;
 };
 
-export type AggregatedTimeEntry = {
+export interface AggregatedTimeEntry = {
   category: string;
   seconds: number;
   color: string;

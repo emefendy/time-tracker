@@ -242,7 +242,8 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [aggregatedEntries]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries]);
 
   return (
     <div className="my-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
