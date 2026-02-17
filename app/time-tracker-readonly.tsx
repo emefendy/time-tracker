@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type TimeEntry = {
+interface TimeEntry {
   id: number;
   category: string;
   seconds: number;
   user_id: string;
   created_at: string;
   color: string;
-};
+}
 
-type TimeTrackerReadOnlyProps = {
+interface TimeTrackerReadOnlyProps {
   entries: TimeEntry[];
-};
+}
 
 const colors = [
   "#667eea",
@@ -30,19 +30,19 @@ const colors = [
   "#12c2e9",
 ];
 
-type AggregatedEntry = {
+interface AggregatedEntry {
   name: string;
   seconds: number;
   color: string;
-};
+}
 
-type Slice = {
+interface Slice {
   startAngle: number;
   endAngle: number;
   name: string;
   seconds: number;
   percentage: string;
-};
+}
 
 export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProps) {
   const [aggregatedEntries, setAggregatedEntries] = useState<AggregatedEntry[]>([]);
@@ -59,15 +59,15 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    const dateFormatted = date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    const dateFormatted = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-    const timeFormatted = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    const timeFormatted = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
     return `${dateFormatted} at ${timeFormatted}`;
   };
@@ -89,7 +89,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       result.push({
         name,
         seconds,
-        color: colors[colorIndex % colors.length] ?? '#3b82f6',,
+        color: colors[colorIndex % colors.length] ?? "#3b82f6",
       });
       colorIndex++;
     });
@@ -245,37 +245,24 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
   }, [aggregatedEntries]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 my-8">
+    <div className="my-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
       {/* Entries List */}
-      <div className="bg-gray-50 p-6 rounded-[15px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] max-h-[500px] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 sticky top-0 bg-gray-50">
-          Time Entries
-        </h2>
+      <div className="max-h-[500px] overflow-y-auto rounded-[15px] bg-gray-50 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 className="sticky top-0 mb-4 bg-gray-50 text-xl font-semibold text-gray-800">Time Entries</h2>
         <div>
           {entries.length === 0 ? (
-            <div className="text-center text-gray-400 text-xl mt-12">
-              No entries yet. Log in to start tracking!
-            </div>
+            <div className="mt-12 text-center text-xl text-gray-400">No entries yet. Log in to start tracking!</div>
           ) : (
             entries.map((entry) => (
               <div
                 key={entry.id}
-                className="bg-white p-4 mb-3 rounded-lg flex items-center gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+                className="mb-3 flex items-center gap-4 rounded-lg bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
               >
-                <div
-                  className="w-5 h-5 rounded flex-shrink-0"
-                  style={{ backgroundColor: entry.color }}
-                />
+                <div className="h-5 w-5 flex-shrink-0 rounded" style={{ backgroundColor: entry.color }} />
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-800 mb-1">
-                    {entry.category}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {formatTime(entry.seconds)}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {formatDateTime(entry.created_at)}
-                  </div>
+                  <div className="mb-1 font-semibold text-gray-800">{entry.category}</div>
+                  <div className="text-sm text-gray-600">{formatTime(entry.seconds)}</div>
+                  <div className="mt-1 text-xs text-gray-500">{formatDateTime(entry.created_at)}</div>
                 </div>
               </div>
             ))
@@ -285,16 +272,16 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
       {/* Chart Section */}
       <div className="flex flex-col items-center justify-center">
-        <div className="w-full max-w-[500px] aspect-square relative">
+        <div className="relative aspect-square w-full max-w-[500px]">
           <canvas
             ref={canvasRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className="max-w-full h-auto cursor-pointer"
+            className="h-auto max-w-full cursor-pointer"
           />
           <div
             ref={tooltipRef}
-            className="absolute bg-black/80 text-white px-3 py-2 rounded-md text-sm pointer-events-none opacity-0 transition-opacity whitespace-nowrap z-[1000]"
+            className="pointer-events-none absolute z-[1000] whitespace-nowrap rounded-md bg-black/80 px-3 py-2 text-sm text-white opacity-0 transition-opacity"
           />
         </div>
       </div>
