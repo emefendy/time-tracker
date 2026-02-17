@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { createBrowserSupabaseClient } from "@/lib/client-utils";
+import { useEffect, useRef, useState } from "react";
 
-type TimeEntry = {
+interface TimeEntry {
   id: number;
   category: string;
   seconds: number;
   user_id: string;
   created_at: string;
   color: string;
-};
+}
 
-type TimeTrackerClientProps = {
+interface TimeTrackerClientProps {
   userId: string;
   initialEntries: TimeEntry[];
-};
+}
 
 const colors = [
   "#667eea",
@@ -32,19 +32,19 @@ const colors = [
   "#12c2e9",
 ];
 
-type AggregatedEntry = {
+interface AggregatedEntry {
   name: string;
   seconds: number;
   color: string;
-};
+}
 
-type Slice = {
+interface Slice {
   startAngle: number;
   endAngle: number;
   name: string;
   seconds: number;
   percentage: string;
-};
+}
 
 export default function TimeTrackerClient({ userId, initialEntries }: TimeTrackerClientProps) {
   const [entries, setEntries] = useState<AggregatedEntry[]>([]);
@@ -68,15 +68,15 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    const dateFormatted = date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    const dateFormatted = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-    const timeFormatted = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    const timeFormatted = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
     return `${dateFormatted} at ${timeFormatted}`;
   };
@@ -98,7 +98,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
       result.push({
         name,
         seconds,
-        color: colors[colorIndex % colors.length] ?? '#3b82f6',,
+        color: colors[colorIndex % colors.length] ?? "#3b82f6",
       });
       colorIndex++;
     });
@@ -169,11 +169,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
   const deleteEntry = async (id: number) => {
     // Delete specific entry by ID
-    const { error } = await supabase
-      .from("time_entries")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
+    const { error } = await supabase.from("time_entries").delete().eq("id", id).eq("user_id", userId);
 
     if (error) {
       console.error("Error deleting time entry:", error);
@@ -352,20 +348,18 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-5">
-      <div className="max-w-7xl mx-auto bg-white rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] overflow-hidden">
-        <div className="bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white p-8 text-center">
-          <h1 className="text-4xl font-bold mb-2">⏱️ Time Tracker</h1>
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-[20px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+        <div className="bg-gradient-to-br from-[#667eea] to-[#764ba2] p-8 text-center text-white">
+          <h1 className="mb-2 text-4xl font-bold">⏱️ Time Tracker</h1>
           <p>Track what you're working on and visualize your time</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+        <div className="grid grid-cols-1 gap-8 p-8 lg:grid-cols-2">
           {/* Left Panel */}
           <div className="flex flex-col gap-5">
             {/* Input Section */}
-            <div className="bg-gray-50 p-6 rounded-[15px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                What are you working on?
-              </h2>
+            <div className="rounded-[15px] bg-gray-50 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">What are you working on?</h2>
               <input
                 type="text"
                 value={category}
@@ -377,23 +371,23 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
                     startTimer();
                   }
                 }}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-base transition-colors focus:outline-none focus:border-[#667eea] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-base transition-colors focus:border-[#667eea] focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
               />
-              <div className="text-5xl font-bold text-[#667eea] text-center my-5 font-mono">
+              <div className="my-5 text-center font-mono text-5xl font-bold text-[#667eea]">
                 {formatTime(elapsedSeconds)}
               </div>
-              <div className="flex gap-3 mt-4">
+              <div className="mt-4 flex gap-3">
                 <button
                   onClick={startTimer}
                   disabled={isRunning}
-                  className="flex-1 px-5 py-3 bg-green-600 text-white rounded-lg text-base font-semibold cursor-pointer transition-all hover:bg-green-700 hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+                  className="flex-1 cursor-pointer rounded-lg bg-green-600 px-5 py-3 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-green-700 disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   Start Timer
                 </button>
                 <button
                   onClick={stopTimer}
                   disabled={!isRunning}
-                  className="flex-1 px-5 py-3 bg-red-500 text-white rounded-lg text-base font-semibold cursor-pointer transition-all hover:bg-red-600 hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+                  className="flex-1 cursor-pointer rounded-lg bg-red-500 px-5 py-3 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   Stop Timer
                 </button>
@@ -401,41 +395,28 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
             </div>
 
             {/* Entries Section */}
-            <div className="bg-gray-50 p-6 rounded-[15px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] max-h-[400px] overflow-y-auto">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 sticky top-0">
-                Time Entries
-              </h2>
+            <div className="max-h-[400px] overflow-y-auto rounded-[15px] bg-gray-50 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+              <h2 className="sticky top-0 mb-4 text-xl font-semibold text-gray-800">Time Entries</h2>
               <div>
                 {allEntries.length === 0 ? (
-                  <div className="text-center text-gray-400 text-xl mt-12">
-                    No entries yet. Start tracking!
-                  </div>
+                  <div className="mt-12 text-center text-xl text-gray-400">No entries yet. Start tracking!</div>
                 ) : (
                   allEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="bg-white p-4 mb-3 rounded-lg flex justify-between items-center shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-transform hover:translate-x-1"
+                      className="mb-3 flex items-center justify-between rounded-lg bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-transform hover:translate-x-1"
                     >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div
-                          className="w-5 h-5 rounded flex-shrink-0"
-                          style={{ backgroundColor: entry.color }}
-                        />
+                      <div className="flex flex-1 items-center gap-4">
+                        <div className="h-5 w-5 flex-shrink-0 rounded" style={{ backgroundColor: entry.color }} />
                         <div className="flex-1">
-                          <div className="font-semibold text-gray-800 mb-1">
-                            {entry.category}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {formatTime(entry.seconds)}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {formatDateTime(entry.created_at)}
-                          </div>
+                          <div className="mb-1 font-semibold text-gray-800">{entry.category}</div>
+                          <div className="text-sm text-gray-600">{formatTime(entry.seconds)}</div>
+                          <div className="mt-1 text-xs text-gray-500">{formatDateTime(entry.created_at)}</div>
                         </div>
                       </div>
                       <button
                         onClick={() => deleteEntry(entry.id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded-md text-sm flex-shrink-0 hover:bg-red-600 transition-colors"
+                        className="flex-shrink-0 rounded-md bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
                       >
                         Delete
                       </button>
@@ -448,16 +429,16 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
           {/* Chart Section */}
           <div className="flex flex-col items-center justify-center">
-            <div className="w-full max-w-[500px] aspect-square relative">
+            <div className="relative aspect-square w-full max-w-[500px]">
               <canvas
                 ref={canvasRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                className="max-w-full h-auto cursor-pointer"
+                className="h-auto max-w-full cursor-pointer"
               />
               <div
                 ref={tooltipRef}
-                className="absolute bg-black/80 text-white px-3 py-2 rounded-md text-sm pointer-events-none opacity-0 transition-opacity whitespace-nowrap z-[1000]"
+                className="pointer-events-none absolute z-[1000] whitespace-nowrap rounded-md bg-black/80 px-3 py-2 text-sm text-white opacity-0 transition-opacity"
               />
             </div>
           </div>
