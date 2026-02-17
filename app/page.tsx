@@ -22,7 +22,7 @@ export default async function Home() {
       <Separator className="my-4" />
 
       {/* Read-only chart and entries */}
-      <TimeTrackerReadOnly entries={allTimeEntries || []} />
+      <TimeTrackerReadOnly entries={allTimeEntries ?? []} />
 
       <Separator className="my-4" />
       <TypographyP>Time Tracker was created as an example webapp for T4SG&apos;s Spring 2024 applications.</TypographyP>

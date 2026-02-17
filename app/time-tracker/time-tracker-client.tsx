@@ -86,7 +86,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
     dbEntries.forEach((entry) => {
       const categoryLower = entry.category.toLowerCase();
-      const current = aggregated.get(categoryLower) || 0;
+      const current = aggregated.get(categoryLower) ?? 0;
       aggregated.set(categoryLower, current + entry.seconds);
     });
 
@@ -194,7 +194,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.parentElement?.offsetWidth || 500;
+    const width = canvas.parentElement?.offsetWidth ?? 500;
     canvas.width = width;
     canvas.height = width;
 
@@ -255,7 +255,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
   const getSliceAtPosition = (x: number, y: number): Slice | null => {
     const canvas = canvasRef.current;
-    if (!canvas || slices.length === 0) return null;
+    if (!canvas ?? slices.length === 0) return null;
 
     const rect = canvas.getBoundingClientRect();
     const mouseX = x - rect.left;
@@ -283,7 +283,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
       if (end < 0) end += 2 * Math.PI;
 
       if (end < start) {
-        if (angle >= start || angle <= end) {
+        if (angle >= start ?? angle <= end) {
           return slice;
         }
       } else {
