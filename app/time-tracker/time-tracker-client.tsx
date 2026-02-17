@@ -45,10 +45,9 @@ interface Slice {
   seconds: number;
   percentage: string;
 }
-
-export default function TimeTrackerClient({ userId, initialEntries }: TimeTrackerClientProps) {
+export default function TimeTrackerClient({ userId, initialEntries: _initialEntries }: TimeTrackerClientProps) {
+  const [allEntries, setAllEntries] = useState<TimeEntry[]>(_initialEntries);
   const [entries, setEntries] = useState<AggregatedEntry[]>([]);
-  const [allEntries, setAllEntries] = useState<TimeEntry[]>([]); // Track individual entries
   const [category, setCategory] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -328,6 +327,7 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entries]);
 
   useEffect(() => {
