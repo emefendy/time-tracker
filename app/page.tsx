@@ -1,22 +1,31 @@
 import { Separator } from "@/components/ui/separator";
 import { TypographyH2, TypographyP } from "@/components/ui/typography";
+import { createServerSupabaseClient } from "@/lib/server-utils";
+import TimeTrackerReadOnly from "./time-tracker-readonly";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createServerSupabaseClient();
+
+  // Fetch all time entries for public view
+  const { data: allTimeEntries } = await supabase
+    .from("time_entries")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   return (
     <>
       <TypographyH2>
-        Welcome to T4SG <span className="text-green-400">Biodiversity Hub</span>!
+        What did Emilie <span className="text-green-400">do today??</span>
       </TypographyH2>
-      <TypographyP>
-        Biodiversity Hub is a web-app that allows users to post information about different species and stay educated on
-        biodiversity across the globe. Users sign into the app and add cards that contain data on the species&apos;
-        name, description, population, and more.
-      </TypographyP>
-      <TypographyP>To see the species page, log in in the top right!</TypographyP>
+      <TypographyP>What I did.</TypographyP>
+      <TypographyP>Login is for me to edit</TypographyP>
       <Separator className="my-4" />
-      <TypographyP>
-        Biodiversity Hub was created as an example webapp for T4SG&apos;s Spring 2024 applications.
-      </TypographyP>
+
+      {/* Read-only chart and entries */}
+      <TimeTrackerReadOnly entries={allTimeEntries || []} />
+
+      <Separator className="my-4" />
+      <TypographyP>Time Tracker was created as an example webapp for T4SG&apos;s Spring 2024 applications.</TypographyP>
       <TypographyP>Good luck! We can&apos;t wait to see what you create :)</TypographyP>
     </>
   );

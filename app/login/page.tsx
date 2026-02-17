@@ -11,7 +11,7 @@ export default async function LoginPage() {
 
   if (session) {
     // Users who are already signed in should be redirected to species page
-    redirect("/species");
+    redirect("/time-tracker");
   }
 
   return (

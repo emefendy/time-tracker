@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Tracker</title>
+    <style>
+        /* ... keep all your existing CSS ... */
+    </style>
+</head>
+<body>
+    <!-- ... keep all your existing HTML ... -->
+
+    <!-- Add Supabase client library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://xxccglbriknjmupcdlfu.supabase.co'; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4Y2NnbGJyaWtuam11cGNkbGZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzc4NjUsImV4cCI6MjA4Njg1Mzg2NX0.H3WaGi1tPUqYuVtC4gYkVDBs5nQbfiQ67m5pR5IIG84'; // Replace with your anon key
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // State management
+        let entries = [];
+        let timerInterval = null;
+        let currentTask = null;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let currentUser = null;
+
+        // Color palette for pie chart
+        const colors = [
+            '#667eea', '#764ba2', '#f093fb', '#4facfe',
+            '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+            '#a8edea', '#fed6e3', '#c471f5', '#12c2e9'
+        ];
+
+        // DOM elements
+        const taskInput = document.getElementById('taskInput');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const entriesList = document.getElementById('entriesList');
+        const canvas = document.getElementById('pieChart');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('chartTooltip');
+
+        // Check authentication and load data
+        async function initialize() {
+            // Check if user is logged in
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                // Simple login - for testing, you can use email/password
+                // In production, you'd want a proper login UI
+                alert('Please log in first');
+                // You would redirect to login page or show login form here
+                return;
+            }
+            
+            currentUser = user;
+            await loadEntries();
+        }
+
+        // Load entries from Supabase
+        async function loadEntries() {
+            try {
+                const { data, error } = await supabase
+                    .from('time_entries')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                entries = data.map(entry => ({
+                    id: entry.id,
+                    name: entry.task_name,
+                    seconds: entry.total_seconds,
+                    color: entry.color
+                }));
+
+                renderEntries();
+                renderPieChart();
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                alert('Error loading data: ' + error.message);
+            }
+        }
+
+        // Save new entry or update existing one to Supabase
+        async function saveEntry(taskName, seconds, color) {
+            try {
+                // Check if entry already exists
+                const existingEntry = entries.find(e => e.name.toLowerCase() === taskName.toLowerCase());
+
+                if (existingEntry) {
+                    // Update existing entry
+                    const newTotal = existingEntry.seconds + seconds;
+                    
+                    const { error } = await supabase
+                        .from('time_entries')
+                        .update({ 
+                            total_seconds: newTotal,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', existingEntry.id);
+
+                    if (error) throw error;
+
+                    // Update local state
+                    existingEntry.seconds = newTotal;
+                } else {
+                    // Insert new entry
+                    const { data, error } = await supabase
+                        .from('time_entries')
+                        .insert([{
+                            user_id: currentUser.id,
+                            task_name: taskName,
+                            total_seconds: seconds,
+                            color: color
+                        }])
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+
+                    // Add to local state
+                    entries.push({
+                        id: data.id,
+                        name: data.task_name,
+                        seconds: data.total_seconds,
+                        color: data.color
+                    });
+                }
+
+                // Optionally save to time_sessions table for detailed history
+                await supabase
+                    .from('time_sessions')
+                    .insert([{
+                        user_id: currentUser.id,
+                        task_name: taskName,
+                        seconds: seconds,
+                        started_at: new Date(Date.now() - seconds * 1000).toISOString(),
+                        stopped_at: new Date().toISOString()
+                    }]);
+
+            } catch (error) {
+                console.error('Error saving entry:', error);
+                alert('Error saving data: ' + error.message);
+            }
+        }
+
+        // Delete entry from Supabase
+        async function deleteEntry(index) {
+            try {
+                const entry = entries[index];
+                
+                const { error } = await supabase
+                    .from('time_entries')
+                    .delete()
+                    .eq('id', entry.id);
+
+                if (error) throw error;
+
+                entries.splice(index, 1);
+                renderEntries();
+                renderPieChart();
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                alert('Error deleting entry: ' + error.message);
+            }
+        }
+
+        // Format time as HH:MM:SS
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            timerDisplay.textContent = formatTime(elapsedSeconds);
+        }
+
+        // Start timer
+        function startTimer() {
+            const task = taskInput.value.trim();
+            if (!task) {
+                alert('Please enter a task name!');
+                return;
+            }
+
+            currentTask = task;
+            startTime = Date.now();
+            elapsedSeconds = 0;
+
+            timerInterval = setInterval(() => {
+                elapsedSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            taskInput.disabled = true;
+        }
+
+        // Stop timer
+        async function stopTimer() {
+            if (!timerInterval) return;
+
+            clearInterval(timerInterval);
+            timerInterval = null;
+
+            // Determine color for new entries
+            const existingEntry = entries.find(e => e.name.toLowerCase() === currentTask.toLowerCase());
+            const color = existingEntry ? existingEntry.color : colors[entries.length % colors.length];
+
+            // Save to Supabase
+            await saveEntry(currentTask, elapsedSeconds, color);
+
+            // Reset state
+            currentTask = null;
+            startTime = null;
+            elapsedSeconds = 0;
+            updateTimerDisplay();
+
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            taskInput.disabled = false;
+            taskInput.value = '';
+
+            // Update UI
+            renderEntries();
+            renderPieChart();
+        }
+
+        // Render entries list
+        function renderEntries() {
+            if (entries.length === 0) {
+                entriesList.innerHTML = '<div class="no-data">No entries yet. Start tracking!</div>';
+                return;
+            }
+
+            entriesList.innerHTML = entries.map((entry, index) => `
+                <div class="entry-item">
+                    <div class="entry-info">
+                        <div class="entry-color" style="background-color: ${entry.color}"></div>
+                        <div class="entry-details">
+                            <div class="entry-name">${entry.name}</div>
+                            <div class="entry-time">${formatTime(entry.seconds)}</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteEntry(${index})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        // ... keep all your renderPieChart, getSliceAtPosition, and canvas event listeners ...
+
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !startBtn.disabled) {
+                startTimer();
+            }
+        });
+
+        // Initialize on page load
+        initialize();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            if (entries.length > 0) {
+                renderPieChart();
+            }
+        });
+
+        // ... keep all your existing renderPieChart and canvas code ...
+
+        // Add login function for testing
+async function login() {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'test@example.com',
+        password: 'testpassword123'
+    });
+    
+    if (error) {
+        console.error('Login error:', error);
+        alert('Login failed: ' + error.message);
+    } else {
+        console.log('Logged in successfully!', data);
+        currentUser = data.user;
+        await loadEntries();
+    }
+}
+
+// Auto-login on page load for testing
+async function initialize() {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+        console.log('No user found, logging in...');
+        await login();
+    } else {
+        console.log('User already logged in:', user);
+        currentUser = user;
+        await loadEntries();
+    }
+}
+    </script>
+</body>
+</html>

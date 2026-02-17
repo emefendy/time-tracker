@@ -20,18 +20,22 @@ export default async function AuthStatus() {
 
   const { data, error } = await supabase.from("profiles").select().eq("id", user.id);
 
-  if (error ?? data.length !== 1) {
-    return;
+  if (error || !data || data.length !== 1) {
+    return (
+      <Button asChild>
+        <Link href="/login">Log in</Link>
+      </Button>
+    );
   }
 
   const profileData = data[0];
 
-  // Note: We normally wouldn't need to check this case, but because ts noUncheckedIndexedAccess is enabled in tsconfig, we have to.
-  // noUncheckedIndexedAccess provides better typesafety at cost of jumping through occasional hoops.
-  // Read more here: https://www.totaltypescript.com/tips/make-accessing-objects-safer-by-enabling-nouncheckedindexedaccess-in-tsconfig
-  // https://github.com/microsoft/TypeScript/pull/39560
   if (!profileData) {
-    return;
+    return (
+      <Button asChild>
+        <Link href="/login">Log in</Link>
+      </Button>
+    );
   }
 
   return <UserNav profile={profileData} />;
