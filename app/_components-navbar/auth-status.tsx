@@ -20,7 +20,7 @@ export default async function AuthStatus() {
 
   const { data, error } = await supabase.from("profiles").select().eq("id", user.id);
 
-  if (error || !data || data.length !== 1) {
+  if (error ?? !data ?? data.length !== 1) {
     return (
       <Button asChild>
         <Link href="/login">Log in</Link>

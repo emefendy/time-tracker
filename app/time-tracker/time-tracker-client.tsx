@@ -52,7 +52,6 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
   const [category, setCategory] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -113,7 +112,6 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
     }
 
     const now = Date.now();
-    setStartTime(now);
     setElapsedSeconds(0);
     setIsRunning(true);
 
@@ -164,7 +162,6 @@ export default function TimeTrackerClient({ userId, initialEntries }: TimeTracke
     // Reset state
     setCategory("");
     setElapsedSeconds(0);
-    setStartTime(null);
   };
 
   const deleteEntry = async (id: number) => {

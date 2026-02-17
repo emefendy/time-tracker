@@ -20,5 +20,5 @@ export default async function TimeTrackerPage() {
     .eq("user_id", sessionId)
     .order("created_at", { ascending: false });
 
-  return <TimeTrackerClient userId={sessionId} initialEntries={timeEntries || []} />;
+  return <TimeTrackerClient userId={sessionId} initialEntries={timeEntries ?? []} />;
 }
