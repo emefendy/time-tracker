@@ -47,7 +47,6 @@ interface Slice {
 export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProps) {
   const [aggregatedEntries, setAggregatedEntries] = useState<AggregatedEntry[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
   const [slices, setSlices] = useState<Slice[]>([]);
 
   const formatTime = (seconds: number) => {
@@ -121,11 +120,12 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const total = aggregatedEntries.reduce((sum, entry) => sum + entry.seconds, 0);
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
+    const radius = Math.min(centerX, centerY) * 0.6; // Smaller radius to make room for labels
 
     let currentAngle = -Math.PI / 2;
     const newSlices: Slice[] = [];
 
+    // Draw slices
     aggregatedEntries.forEach((entry) => {
       const sliceAngle = (entry.seconds / total) * 2 * Math.PI;
 
@@ -144,14 +144,15 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       ctx.closePath();
       ctx.fill();
 
-      if (sliceAngle > 0.1) {
+      // Draw percentage inside slice if it's large enough
+      if (sliceAngle > 0.2) {
         const labelAngle = currentAngle + sliceAngle / 2;
-        const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
-        const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
-        const percentage = ((entry.seconds / total) * 100).toFixed(1);
+        const labelX = centerX + Math.cos(labelAngle) * (radius * 0.6);
+        const labelY = centerY + Math.sin(labelAngle) * (radius * 0.6);
+        const percentage = ((entry.seconds / total) * 100).toFixed(0);
 
         ctx.fillStyle = "white";
-        ctx.font = "bold 14px sans-serif";
+        ctx.font = "bold 16px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(`${percentage}%`, labelX, labelY);
@@ -160,88 +161,48 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       currentAngle += sliceAngle;
     });
 
+    // Draw labels with leader lines
+    currentAngle = -Math.PI / 2;
+    aggregatedEntries.forEach((entry) => {
+      const sliceAngle = (entry.seconds / total) * 2 * Math.PI;
+      const midAngle = currentAngle + sliceAngle / 2;
+
+      // Point on the edge of the pie
+      const edgeX = centerX + Math.cos(midAngle) * radius;
+      const edgeY = centerY + Math.sin(midAngle) * radius;
+
+      // Extended point for the line
+      const lineExtend = radius * 0.2;
+      const lineX = centerX + Math.cos(midAngle) * (radius + lineExtend);
+      const lineY = centerY + Math.sin(midAngle) * (radius + lineExtend);
+
+      // Label position
+      const labelOffset = 10;
+      const isRightSide = Math.cos(midAngle) > 0;
+      const labelX = lineX + (isRightSide ? labelOffset : -labelOffset);
+      const labelY = lineY;
+
+      // Draw leader line
+      ctx.strokeStyle = "#666";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(edgeX, edgeY);
+      ctx.lineTo(lineX, lineY);
+      ctx.stroke();
+
+      // Draw label text
+      ctx.fillStyle = "#333";
+      ctx.font = "14px sans-serif";
+      ctx.textAlign = isRightSide ? "left" : "right";
+      ctx.textBaseline = "middle";
+
+      const labelText = `${entry.name} (${formatTime(entry.seconds)})`;
+      ctx.fillText(labelText, labelX, labelY);
+
+      currentAngle += sliceAngle;
+    });
+
     setSlices(newSlices);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-
-    // Get mouse position relative to canvas display size
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    // Convert to canvas internal coordinates
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    const canvasX = mouseX * scaleX;
-    const canvasY = mouseY * scaleY;
-
-    const slice = getSliceFromCanvasCoords(canvasX, canvasY);
-    const tooltip = tooltipRef.current;
-
-    if (tooltip && slice) {
-      tooltip.textContent = `${slice.name} - ${formatTime(slice.seconds)} (${slice.percentage}%)`;
-      tooltip.style.left = mouseX + 15 + "px";
-      tooltip.style.top = mouseY + 15 + "px";
-      tooltip.style.opacity = "1";
-    } else if (tooltip) {
-      tooltip.style.opacity = "0";
-    }
-  };
-
-  const getSliceFromCanvasCoords = (x: number, y: number): Slice | null => {
-    const canvas = canvasRef.current;
-    if (!canvas || slices.length === 0) return null;
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
-
-    // Calculate distance from center
-    const dx = x - centerX;
-    const dy = y - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    // Check if mouse is within the pie
-    if (distance > radius) return null;
-
-    // Calculate angle from center (atan2 returns -π to π)
-    const angle = Math.atan2(dy, dx);
-
-    // Small tolerance for floating point comparisons
-    const tolerance = 0.001;
-
-    // Find matching slice
-    for (const slice of slices) {
-      const start = slice.startAngle;
-      const end = slice.endAngle;
-
-      // Check if this slice wraps around the -π/π boundary
-      if (start > end) {
-        // Slice wraps around: check if angle is >= start OR <= end
-        if (angle >= start - tolerance || angle <= end + tolerance) {
-          return slice;
-        }
-      } else {
-        // Normal slice: check if angle is between start and end
-        if (angle >= start - tolerance && angle <= end + tolerance) {
-          return slice;
-        }
-      }
-    }
-
-    return null;
-  };
-
-  const handleMouseLeave = () => {
-    const tooltip = tooltipRef.current;
-    if (tooltip) {
-      tooltip.style.opacity = "0";
-    }
   };
 
   useEffect(() => {
@@ -303,16 +264,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       {/* Chart Section */}
       <div className="flex flex-col items-center justify-center">
         <div className="relative aspect-square w-full max-w-[500px]">
-          <canvas
-            ref={canvasRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className="h-auto max-w-full cursor-pointer"
-          />
-          <div
-            ref={tooltipRef}
-            className="pointer-events-none absolute z-[1000] whitespace-nowrap rounded-md bg-black/80 px-3 py-2 text-sm text-white opacity-0 transition-opacity"
-          />
+          <canvas ref={canvasRef} className="h-auto max-w-full" />
         </div>
       </div>
     </div>
