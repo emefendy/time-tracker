@@ -21,7 +21,7 @@ export default async function Home() {
   return (
     <>
       <TypographyH2>
-        What did Emilie <span className="text-green-400">do today??</span>
+        What has Emilie <span className="text-green-400">been up to??</span>
       </TypographyH2>
       <TypographyP>What I did today</TypographyP>
       <TypographyP>Log in is for me to edit</TypographyP>
