@@ -23,16 +23,15 @@ export default async function Home() {
       <TypographyH2>
         What did Emilie <span className="text-green-400">do today??</span>
       </TypographyH2>
-      <TypographyP>What I did.</TypographyP>
-      <TypographyP>Login is for me to edit</TypographyP>
+      <TypographyP>What I did today</TypographyP>
+      <TypographyP>Log in is for me to edit, don't log in</TypographyP>
       <Separator className="my-4" />
 
       {/* Read-only chart and entries */}
       <TimeTrackerReadOnly entries={allTimeEntries ?? []} />
 
       <Separator className="my-4" />
-      <TypographyP>Time Tracker was created as an example webapp for T4SG&apos;s Spring 2024 applications.</TypographyP>
-      <TypographyP>Good luck! We can&apos;t wait to see what you create :)</TypographyP>
+      <TypographyP>hi</TypographyP>
     </>
   );
 }

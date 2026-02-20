@@ -78,7 +78,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
     dbEntries.forEach((entry) => {
       const categoryLower = entry.category.toLowerCase();
-      const current = aggregated.get(categoryLower) ?? 0;
+      const current = aggregated.get(categoryLower) || 0;
       aggregated.set(categoryLower, current + entry.seconds);
     });
 
@@ -89,7 +89,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       result.push({
         name,
         seconds,
-        color: colors[colorIndex % colors.length] ?? "#3b82f6",
+        color: colors[colorIndex % colors.length],
       });
       colorIndex++;
     });
@@ -104,7 +104,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.parentElement?.offsetWidth ?? 500;
+    const width = canvas.parentElement?.offsetWidth || 500;
     canvas.width = width;
     canvas.height = width;
 
@@ -163,20 +163,43 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     setSlices(newSlices);
   };
 
-  const getSliceAtPosition = (x: number, y: number): Slice | null => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || slices.length === 0) return null;
+    if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const mouseX = x - rect.left;
-    const mouseY = y - rect.top;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Scale mouse coordinates to canvas internal coordinates
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const canvasX = mouseX * scaleX;
+    const canvasY = mouseY * scaleY;
+
+    const slice = getSliceFromCanvasCoords(canvasX, canvasY);
+    const tooltip = tooltipRef.current;
+
+    if (tooltip && slice) {
+      tooltip.textContent = `${slice.name} - ${formatTime(slice.seconds)} (${slice.percentage}%)`;
+      tooltip.style.left = mouseX + 15 + "px";
+      tooltip.style.top = mouseY + 15 + "px";
+      tooltip.style.opacity = "1";
+    } else if (tooltip) {
+      tooltip.style.opacity = "0";
+    }
+  };
+
+  const getSliceFromCanvasCoords = (canvasX: number, canvasY: number): Slice | null => {
+    const canvas = canvasRef.current;
+    if (!canvas || slices.length === 0) return null;
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
 
-    const dx = mouseX - centerX;
-    const dy = mouseY - centerY;
+    const dx = canvasX - centerX;
+    const dy = canvasY - centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > radius) return null;
@@ -206,22 +229,6 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     return null;
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const slice = getSliceAtPosition(e.clientX, e.clientY);
-    const tooltip = tooltipRef.current;
-    const canvas = canvasRef.current;
-
-    if (tooltip && canvas && slice) {
-      tooltip.textContent = `${slice.name} - ${formatTime(slice.seconds)} (${slice.percentage}%)`;
-      const rect = canvas.getBoundingClientRect();
-      tooltip.style.left = e.clientX - rect.left + 15 + "px";
-      tooltip.style.top = e.clientY - rect.top + 15 + "px";
-      tooltip.style.opacity = "1";
-    } else if (tooltip) {
-      tooltip.style.opacity = "0";
-    }
-  };
-
   const handleMouseLeave = () => {
     const tooltip = tooltipRef.current;
     if (tooltip) {
@@ -242,8 +249,18 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aggregatedEntries]);
+
+  // Create a color map based on aggregated entries
+  const colorMap = new Map<string, string>();
+  aggregatedEntries.forEach((entry) => {
+    colorMap.set(entry.name, entry.color);
+  });
+
+  // Get color for an entry based on its category
+  const getColorForEntry = (category: string): string => {
+    return colorMap.get(category.toLowerCase()) ?? "#667eea";
+  };
 
   return (
     <div className="my-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -259,7 +276,10 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
                 key={entry.id}
                 className="mb-3 flex items-center gap-4 rounded-lg bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
               >
-                <div className="h-5 w-5 flex-shrink-0 rounded" style={{ backgroundColor: entry.color }} />
+                <div
+                  className="h-5 w-5 flex-shrink-0 rounded"
+                  style={{ backgroundColor: getColorForEntry(entry.category) }}
+                />
                 <div className="flex-1">
                   <div className="mb-1 font-semibold text-gray-800">{entry.category}</div>
                   <div className="text-sm text-gray-600">{formatTime(entry.seconds)}</div>
