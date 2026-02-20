@@ -6,8 +6,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata = {
-  title: "T4SG Biodiversity Hub",
-  description: "T4SG Deliverable for Spring 2024 Applications.",
+  title: "Emilie's Time Tracker", // Change this
+  description: "Track what I'm working on and visualize my time", // And this
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
