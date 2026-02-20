@@ -16,7 +16,7 @@ export default async function Home() {
     console.error("Error fetching entries:", error);
   }
 
-  console.log("Fetched entries count:", allTimeEntries?.length || 0);
+  console.log("Fetched entries count:", allTimeEntries?.length ?? 0);
 
   return (
     <>
