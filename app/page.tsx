@@ -23,7 +23,7 @@ export default async function Home() {
       <TypographyH2>
         What has Emilie <span className="text-green-400">been up to??</span>
       </TypographyH2>
-      <TypographyP>What I've been doing'</TypographyP>
+      <TypographyP>What I have been doing</TypographyP>
       <TypographyP>Log in is for me to edit</TypographyP>
       <Separator className="my-4" />
 
