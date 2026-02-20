@@ -47,7 +47,6 @@ interface Slice {
 export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProps) {
   const [aggregatedEntries, setAggregatedEntries] = useState<AggregatedEntry[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [slices, setSlices] = useState<Slice[]>([]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -123,19 +122,10 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const radius = Math.min(centerX, centerY) * 0.6; // Smaller radius to make room for labels
 
     let currentAngle = -Math.PI / 2;
-    const newSlices: Slice[] = [];
 
     // Draw slices
     aggregatedEntries.forEach((entry) => {
       const sliceAngle = (entry.seconds / total) * 2 * Math.PI;
-
-      newSlices.push({
-        startAngle: currentAngle,
-        endAngle: currentAngle + sliceAngle,
-        name: entry.name,
-        seconds: entry.seconds,
-        percentage: ((entry.seconds / total) * 100).toFixed(1),
-      });
 
       ctx.fillStyle = entry.color;
       ctx.beginPath();
@@ -201,8 +191,6 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
       currentAngle += sliceAngle;
     });
-
-    setSlices(newSlices);
   };
 
   useEffect(() => {
