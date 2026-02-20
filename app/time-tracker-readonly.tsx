@@ -36,14 +36,6 @@ interface AggregatedEntry {
   color: string;
 }
 
-interface Slice {
-  startAngle: number;
-  endAngle: number;
-  name: string;
-  seconds: number;
-  percentage: string;
-}
-
 export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProps) {
   const [aggregatedEntries, setAggregatedEntries] = useState<AggregatedEntry[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
