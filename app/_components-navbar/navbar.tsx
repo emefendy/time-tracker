@@ -10,7 +10,7 @@ export default async function Navbar({ className, ...props }: React.HTMLAttribut
   } = await supabase.auth.getUser();
   return (
     <nav className={cn("flex items-center space-x-4 lg:space-x-6", className)} {...props}>
-      <Link href="/time-tracker-readonly" className="text-sm font-medium transition-colors hover:text-primary">
+      <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
         Home
       </Link>
       {user && (

@@ -212,17 +212,22 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     // Calculate angle from center (atan2 returns -π to π)
     const angle = Math.atan2(dy, dx);
 
-    // Don't adjust angle - keep it in -π to π range to match how slices are stored
-    // Slices start at -π/2 (top) and go clockwise
-
     // Find matching slice
     for (const slice of slices) {
       const start = slice.startAngle;
       const end = slice.endAngle;
 
-      // Check if angle falls within this slice's range
-      if (angle >= start && angle <= end) {
-        return slice;
+      // Check if this slice wraps around the -π/π boundary
+      if (start > end) {
+        // Slice wraps around: check if angle is >= start OR <= end
+        if (angle >= start || angle <= end) {
+          return slice;
+        }
+      } else {
+        // Normal slice: check if angle is between start and end
+        if (angle >= start && angle <= end) {
+          return slice;
+        }
       }
     }
 
