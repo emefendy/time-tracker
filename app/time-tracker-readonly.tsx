@@ -78,7 +78,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
     dbEntries.forEach((entry) => {
       const categoryLower = entry.category.toLowerCase();
-      const current = aggregated.get(categoryLower) || 0;
+      const current = aggregated.get(categoryLower) ?? 0;
       aggregated.set(categoryLower, current + entry.seconds);
     });
 
@@ -104,7 +104,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.parentElement?.offsetWidth || 500;
+    const width = canvas.parentElement?.offsetWidth ?? 500;
     canvas.width = width;
     canvas.height = width;
 
@@ -249,6 +249,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aggregatedEntries]);
 
   // Create a color map based on aggregated entries
