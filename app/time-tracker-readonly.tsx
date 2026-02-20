@@ -89,7 +89,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       result.push({
         name,
         seconds,
-        color: colors[colorIndex % colors.length],
+        color: colors[colorIndex % colors.length] ?? "#667eea",
       });
       colorIndex++;
     });
