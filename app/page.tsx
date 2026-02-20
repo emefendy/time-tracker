@@ -7,10 +7,16 @@ export default async function Home() {
   const supabase = createServerSupabaseClient();
 
   // Fetch all time entries for public view
-  const { data: allTimeEntries } = await supabase
+  const { data: allTimeEntries, error } = await supabase
     .from("time_entries")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching entries:", error);
+  }
+
+  console.log("Fetched entries count:", allTimeEntries?.length || 0);
 
   return (
     <>
