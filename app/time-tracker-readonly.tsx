@@ -111,7 +111,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const total = aggregatedEntries.reduce((sum, entry) => sum + entry.seconds, 0);
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) * 0.6; // Smaller radius to make room for labels
+    const radius = Math.min(centerX, centerY) * 0.5; // Even smaller radius for more label space
 
     let currentAngle = -Math.PI / 2;
 
@@ -154,12 +154,12 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       const edgeY = centerY + Math.sin(midAngle) * radius;
 
       // Extended point for the line
-      const lineExtend = radius * 0.2;
+      const lineExtend = radius * 0.3;
       const lineX = centerX + Math.cos(midAngle) * (radius + lineExtend);
       const lineY = centerY + Math.sin(midAngle) * (radius + lineExtend);
 
-      // Label position
-      const labelOffset = 10;
+      // Label position - add more offset from the line end
+      const labelOffset = 5;
       const isRightSide = Math.cos(midAngle) > 0;
       const labelX = lineX + (isRightSide ? labelOffset : -labelOffset);
       const labelY = lineY;
@@ -174,7 +174,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
 
       // Draw label text
       ctx.fillStyle = "#333";
-      ctx.font = "14px sans-serif";
+      ctx.font = "13px sans-serif";
       ctx.textAlign = isRightSide ? "left" : "right";
       ctx.textBaseline = "middle";
 
