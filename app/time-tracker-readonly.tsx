@@ -193,7 +193,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
       if (end < 0) end += 2 * Math.PI;
 
       if (end < start) {
-        if (angle >= start ?? angle <= end) {
+        if (angle >= start || angle <= end) {
           return slice;
         }
       } else {
@@ -243,7 +243,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries]);
+  }, [aggregatedEntries]);
 
   return (
     <div className="my-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
