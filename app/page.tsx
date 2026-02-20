@@ -24,7 +24,7 @@ export default async function Home() {
         What did Emilie <span className="text-green-400">do today??</span>
       </TypographyH2>
       <TypographyP>What I did today</TypographyP>
-      <TypographyP>Log in is for me to edit, do not log in</TypographyP>
+      <TypographyP>Log in is for me to edit</TypographyP>
       <Separator className="my-4" />
 
       {/* Read-only chart and entries */}

@@ -168,12 +168,15 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
+
+    // Get mouse position relative to canvas display size
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // Scale mouse coordinates to canvas internal coordinates
+    // Convert to canvas internal coordinates
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
+
     const canvasX = mouseX * scaleX;
     const canvasY = mouseY * scaleY;
 
@@ -190,7 +193,7 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     }
   };
 
-  const getSliceFromCanvasCoords = (canvasX: number, canvasY: number): Slice | null => {
+  const getSliceFromCanvasCoords = (x: number, y: number): Slice | null => {
     const canvas = canvasRef.current;
     if (!canvas || slices.length === 0) return null;
 
@@ -198,29 +201,41 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
 
-    const dx = canvasX - centerX;
-    const dy = canvasY - centerY;
+    // Calculate distance from center
+    const dx = x - centerX;
+    const dy = y - centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
+    // Check if mouse is within the pie
     if (distance > radius) return null;
 
+    // Calculate angle from center
     let angle = Math.atan2(dy, dx);
+    // Convert to match our pie chart rotation (starts at top, goes clockwise)
     angle = angle + Math.PI / 2;
+    // Normalize to 0-2π range
     if (angle < 0) angle += 2 * Math.PI;
 
+    // Find matching slice
     for (const slice of slices) {
       let start = slice.startAngle;
       let end = slice.endAngle;
 
-      if (start < 0) start += 2 * Math.PI;
-      if (end < 0) end += 2 * Math.PI;
+      // Normalize angles to 0-2π
+      while (start < 0) start += 2 * Math.PI;
+      while (end < 0) end += 2 * Math.PI;
+      while (start >= 2 * Math.PI) start -= 2 * Math.PI;
+      while (end >= 2 * Math.PI) end -= 2 * Math.PI;
 
-      if (end < start) {
-        if (angle >= start || angle <= end) {
+      // Check if angle is within this slice
+      if (start <= end) {
+        // Normal case: slice doesn't wrap around
+        if (angle >= start && angle <= end) {
           return slice;
         }
       } else {
-        if (angle >= start && angle <= end) {
+        // Slice wraps around 0/2π boundary
+        if (angle >= start || angle <= end) {
           return slice;
         }
       }
