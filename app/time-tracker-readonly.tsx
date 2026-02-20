@@ -209,35 +209,20 @@ export default function TimeTrackerReadOnly({ entries }: TimeTrackerReadOnlyProp
     // Check if mouse is within the pie
     if (distance > radius) return null;
 
-    // Calculate angle from center
-    let angle = Math.atan2(dy, dx);
-    // Convert to match our pie chart rotation (starts at top, goes clockwise)
-    angle = angle + Math.PI / 2;
-    // Normalize to 0-2π range
-    if (angle < 0) angle += 2 * Math.PI;
+    // Calculate angle from center (atan2 returns -π to π)
+    const angle = Math.atan2(dy, dx);
+
+    // Don't adjust angle - keep it in -π to π range to match how slices are stored
+    // Slices start at -π/2 (top) and go clockwise
 
     // Find matching slice
     for (const slice of slices) {
-      let start = slice.startAngle;
-      let end = slice.endAngle;
+      const start = slice.startAngle;
+      const end = slice.endAngle;
 
-      // Normalize angles to 0-2π
-      while (start < 0) start += 2 * Math.PI;
-      while (end < 0) end += 2 * Math.PI;
-      while (start >= 2 * Math.PI) start -= 2 * Math.PI;
-      while (end >= 2 * Math.PI) end -= 2 * Math.PI;
-
-      // Check if angle is within this slice
-      if (start <= end) {
-        // Normal case: slice doesn't wrap around
-        if (angle >= start && angle <= end) {
-          return slice;
-        }
-      } else {
-        // Slice wraps around 0/2π boundary
-        if (angle >= start || angle <= end) {
-          return slice;
-        }
+      // Check if angle falls within this slice's range
+      if (angle >= start && angle <= end) {
+        return slice;
       }
     }
 
